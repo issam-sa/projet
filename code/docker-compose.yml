@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mobility}
+      POSTGRES_USER: ${POSTGRES_USER:-mobility}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mobility}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/00_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: ./services/api
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://mobility:mobility@db:5432/mobility}
+      NOMINATIM_URL: ${NOMINATIM_URL:-https://nominatim.openstreetmap.org/search}
+      OSRM_URL: ${OSRM_URL:-http://router.project-osrm.org}
+      ROUTE_CONGESTION_PENALTY: ${ROUTE_CONGESTION_PENALTY:-1.0}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: ./services/dashboard
+    env_file:
+      - .env
+    environment:
+      API_BASE_URL: http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+
+  pipeline:
+    build:
+      context: ./services/pipeline
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://mobility:mobility@db:5432/mobility}
+      ODS_DOMAIN: ${ODS_DOMAIN:-opendata.paris.fr}
+      ODS_DATASET: ${ODS_DATASET:-}
+      ODS_API_KEY: ${ODS_API_KEY:-}
+      ODS_FIELD_TS: ${ODS_FIELD_TS:-t_1h}
+      ODS_FIELD_FLOW: ${ODS_FIELD_FLOW:-q}
+      ODS_FIELD_OCC: ${ODS_FIELD_OCC:-k}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
+

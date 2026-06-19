@@ -1,0 +1,5 @@
+# Outils de qualité et de test (communs aux 3 services)
+pytest==8.3.2
+ruff==0.6.2
+black==24.8.0
+pre-commit==3.8.0

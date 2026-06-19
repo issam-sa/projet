@@ -1,0 +1,20 @@
+# Secrets — ne jamais publier
+.env
+**/.env
+
+# Vidéos : trop volumineuses pour Git (héberger sur YouTube en mode "Non répertorié")
+video/
+*.mp4
+
+# Caches Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+
+# Données / fichiers système
+db_data/
+.DS_Store
+Thumbs.db

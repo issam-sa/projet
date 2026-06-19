@@ -1,0 +1,6 @@
+streamlit==1.37.1
+requests==2.32.3
+pandas==2.2.2
+pydeck==0.9.1
+plotly==5.23.0
+
